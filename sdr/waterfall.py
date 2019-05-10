@@ -64,7 +64,8 @@ try:
         for dat in arr:
             # map all values between max and min, as bytes
             thislist.append(mymap(dat, min_pow, max_pow, 0, 255))
-        imagelist.append(thislist)
+        imagelist.append(thislist[round(len(
+            thislist)/2)-round(len(thislist)/8): round(len(thislist)/2)+round(len(thislist)/8)])
     largearray = np.array(imagelist, np.ubyte)
 
     im = Image.fromarray(largearray, mode='L')
