@@ -70,8 +70,8 @@ try:
 
     im = Image.fromarray(largearray, mode='L')
     t = time.time()
-    im.save(f"sdr\waterfall{t}.jpg")
-    im.save(f"sdr\waterfall{t}.bmp")
+    im.save(f"sdr/waterfall{t}.jpg")
+    im.save(f"sdr/waterfall{t}.bmp")
 
 
 except KeyboardInterrupt:
