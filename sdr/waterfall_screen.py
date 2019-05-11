@@ -5,8 +5,8 @@ from PIL import Image
 import time
 import pygame
 
-DISPLAY_WIDTH = 1280
-DISPLAY_HEIGHT = 720
+DISPLAY_WIDTH = 256
+DISPLAY_HEIGHT = 200
 
 sdr = RtlSdr()
 # configure device
@@ -38,10 +38,10 @@ def get_data():
     imagelist = []
     for dat in power:
         imagelist.append(mymap(dat, min_pow, max_pow, 0, 255))
-    image.append(imagelist)
-    if len(image) > 100:
-        image.pop(-1)
-    print(len(image))
+    image.append(imagelist[round(len(
+        imagelist)/2)-round(len(imagelist)/8): round(len(imagelist)/2)+round(len(imagelist)/8)])
+    if len(image) > 200:
+        image.pop(0)
 
 
 def mymap(x, in_min, in_max, out_min, out_max):
@@ -54,7 +54,7 @@ pygame.display.set_caption(f"DIY SDR")
 clock = pygame.time.Clock()
 background = pygame.Surface(gameDisplay.get_size())
 background = background.convert()
-background.fill((255, 255, 255))
+background.fill((0, 0, 0))
 
 game_quit = False
 
@@ -68,10 +68,11 @@ while not game_quit:
 
     get_data()
     outimage = np.array(image, np.ubyte)
-    outimage = Image.fromarray(outimage, mode='P')
-    strFormat = 'P'
+    outimage = Image.fromarray(outimage, mode='L')
+    outimage = outimage.convert('RGBA')
+    strFormat = 'RGBA'
     raw_str = outimage.tobytes("raw", strFormat)
-    surface = pygame.image.fromstring(raw_str, outimage.size, 'P')
+    surface = pygame.image.fromstring(raw_str, outimage.size, 'RGBA')
     gameDisplay.blit(surface, (0, 0))
     pygame.display.update()
     clock.tick(60)
