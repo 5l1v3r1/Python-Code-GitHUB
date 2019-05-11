@@ -1,15 +1,16 @@
-from matplotlib import pyplot as plt
 from matplotlib import mlab as mlab
-import matplotlib.animation as animation
 
 from rtlsdr import RtlSdr
 
 import numpy as np
-import math
 
 from PIL import Image
 
 import time
+
+import pygame
+DISPLAY_WIDTH = 1280
+DISPLAY_HEIGHT = 720
 
 sdr = RtlSdr()
 # configure device
@@ -18,31 +19,50 @@ sdr.center_freq = 94.7e6  # Hz
 sdr.freq_correction = 60   # PPM
 sdr.gain = 'auto'
 
-fig = plt.figure()
-graph_out = fig.add_subplot(1, 1, 1)
 
 image = []
 
 
-def animate(i):
-    graph_out.clear()
+def get_data():
     # samples = sdr.read_samples(256*1024)
     samples = sdr.read_samples(16*1024)
     # use matplotlib to estimate and plot the PSD
     power, psd_freq = mlab.psd(samples, NFFT=1024, Fs=sdr.sample_rate /
                                1e6)
     psd_freq = psd_freq + sdr.center_freq/1e6
-    graph_out.semilogy(psd_freq, power)
     image.append(power)
+    print("LIVE")
 
 
 def mymap(x, in_min, in_max, out_min, out_max):
     return int((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 
 
+pygame.init()
+gameDisplay = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
+pygame.display.set_caption(f"DIY SDR")
+clock = pygame.time.Clock()
+background = pygame.Surface(gameDisplay.get_size())
+background = background.convert()
+background.fill((0, 0, 0))
+
+game_quit = False
+
+while not game_quit:
+
+    gameDisplay.blit(background, (0, 0))
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            game_quit = True
+
+    pygame.display.update()
+    clock.tick(60)
+
+pygame.quit()
+
 try:
-    ani = animation.FuncAnimation(fig, animate, interval=100)
-    plt.show()
+    get_data()
 
     max_pow = 0
     min_pow = 10
