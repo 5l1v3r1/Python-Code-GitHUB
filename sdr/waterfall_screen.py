@@ -38,10 +38,10 @@ def get_data():
     imagelist = []
     for dat in power:
         imagelist.append(mymap(dat, min_pow, max_pow, 0, 255))
-    image.append(np.array(imagelist, np.ubyte))
-    print(image)
+    image.append(imagelist)
+    if len(image) > 100:
+        image.pop(-1)
     print(len(image))
-    print("LIVE")
 
 
 def mymap(x, in_min, in_max, out_min, out_max):
@@ -54,7 +54,7 @@ pygame.display.set_caption(f"DIY SDR")
 clock = pygame.time.Clock()
 background = pygame.Surface(gameDisplay.get_size())
 background = background.convert()
-background.fill((0, 0, 0))
+background.fill((255, 255, 255))
 
 game_quit = False
 
@@ -66,22 +66,20 @@ while not game_quit:
         if event.type == pygame.QUIT:
             game_quit = True
 
-    pass
-
+    get_data()
+    outimage = np.array(image, np.ubyte)
+    outimage = Image.fromarray(outimage, mode='P')
+    strFormat = 'P'
+    raw_str = outimage.tobytes("raw", strFormat)
+    surface = pygame.image.fromstring(raw_str, outimage.size, 'P')
+    gameDisplay.blit(surface, (0, 0))
     pygame.display.update()
     clock.tick(60)
 
 pygame.quit()
 
 try:
-    get_data()
-
-    #im = Image.fromarray(largearray, mode='L')
-    #t = time.time()
-    # im.save(f"sdr/images/waterfall{t}.jpg")
-    # im.save(f"sdr/images/waterfall{t}.bmp")
-
-
+    pass
 except KeyboardInterrupt:
     pass
 finally:
