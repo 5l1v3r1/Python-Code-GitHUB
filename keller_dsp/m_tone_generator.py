@@ -1,3 +1,8 @@
+"""
+With this, everyone can create a tone.
+"""
+
+
 class ToneGenerator:
     """
     With this, everyone can create a tone.
