@@ -2,6 +2,7 @@
 This is an empty file.
 It may be used as a starting point for other tasks.
 This file reads the mic input and outputs the data unchanged.
+Use Ctrl-C to quit the program safely.
 """
 
 import pyaudio  # pyaudio to record and play audio
