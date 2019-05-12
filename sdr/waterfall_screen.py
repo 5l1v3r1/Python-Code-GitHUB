@@ -1,27 +1,36 @@
-from matplotlib import mlab as mlab
+"""
+Gets live data from Nooelec SDR and
+displays a waterfall accordingly.
+Center Frequency is 94.7MHz.
+"""
+
+from matplotlib import mlab
 from rtlsdr import RtlSdr
 import numpy as np
 from PIL import Image
-import time
 import pygame
 
 DISPLAY_WIDTH = 256
 DISPLAY_HEIGHT = 200
 
-sdr = RtlSdr()
+SDR = RtlSdr()
 # configure device
-sdr.sample_rate = 2.4e6  # Hz
-sdr.center_freq = 94.7e6  # Hz
-sdr.freq_correction = 60   # PPM
-sdr.gain = 'auto'
+SDR.sample_rate = 2.4e6  # Hz
+SDR.center_freq = 94.7e6  # Hz
+SDR.freq_correction = 60   # PPM
+SDR.gain = 'auto'
 
 
-image = []
+IMAGE = []
 
 
 def get_data():
-    samples = sdr.read_samples(16*1024)
-    power, _ = mlab.psd(samples, NFFT=1024, Fs=sdr.sample_rate /
+    """
+    Reads new samples and updates output image.
+    """
+
+    samples = SDR.read_samples(16*1024)
+    power, _ = mlab.psd(samples, NFFT=1024, Fs=SDR.sample_rate /
                         1e6)
 
     max_pow = 0
@@ -38,50 +47,49 @@ def get_data():
     imagelist = []
     for dat in power:
         imagelist.append(mymap(dat, min_pow, max_pow, 0, 255))
-    image.append(imagelist[round(len(
+    IMAGE.append(imagelist[round(len(
         imagelist)/2)-round(len(imagelist)/8): round(len(imagelist)/2)+round(len(imagelist)/8)])
-    if len(image) > 200:
-        image.pop(0)
+    if len(IMAGE) > 200:
+        IMAGE.pop(0)
 
 
-def mymap(x, in_min, in_max, out_min, out_max):
-    return int((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+def mymap(val, in_min, in_max, out_min, out_max):
+    """
+    Returns the value which was mapped between in_min and in_max,
+    but now mapped between out_min and out_max.
+    If value is outside of bounds, it will still be outside afterwards.
+    """
+
+    return int((val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 
 
 pygame.init()
-gameDisplay = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
+GAMEDISPLAY = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
 pygame.display.set_caption(f"DIY SDR")
-clock = pygame.time.Clock()
-background = pygame.Surface(gameDisplay.get_size())
-background = background.convert()
-background.fill((0, 0, 0))
+CLOCK = pygame.time.Clock()
+BACKGROUND = pygame.Surface(GAMEDISPLAY.get_size())
+BACKGROUND = BACKGROUND.convert()
+BACKGROUND.fill((0, 0, 0))
 
-game_quit = False
+GAMEQUIT = False
 
-while not game_quit:
+while not GAMEQUIT:
 
-    gameDisplay.blit(background, (0, 0))
+    GAMEDISPLAY.blit(BACKGROUND, (0, 0))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            game_quit = True
+            GAMEQUIT = True
 
     get_data()
-    outimage = np.array(image, np.ubyte)
-    outimage = Image.fromarray(outimage, mode='L')
-    outimage = outimage.convert('RGBA')
-    strFormat = 'RGBA'
-    raw_str = outimage.tobytes("raw", strFormat)
-    surface = pygame.image.fromstring(raw_str, outimage.size, 'RGBA')
-    gameDisplay.blit(surface, (0, 0))
+    OUTIMAGE = np.array(IMAGE, np.ubyte)
+    OUTIMAGE = Image.fromarray(OUTIMAGE, mode='L')
+    OUTIMAGE = OUTIMAGE.convert('RGBA')
+    RAWSTR = OUTIMAGE.tobytes("raw", 'RGBA')
+    SURFACE = pygame.image.fromstring(RAWSTR, OUTIMAGE.size, 'RGBA')
+    GAMEDISPLAY.blit(SURFACE, (0, 0))
     pygame.display.update()
-    clock.tick(60)
+    CLOCK.tick(60)
 
 pygame.quit()
-
-try:
-    pass
-except KeyboardInterrupt:
-    pass
-finally:
-    sdr.close()
+SDR.close()
